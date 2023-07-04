@@ -18,7 +18,8 @@ contract SimpleStorage {
     // external: only visible externally for function
     // internal: only visible internally
 
-    function store(uint _favoriteNumber) public {
+    function store(uint _favoriteNumber) public virtual{
+        // virtual keyword is needed because we later want to override this function in Add5Storage.sol
         myFavoriteNumber = _favoriteNumber;
     }
 
