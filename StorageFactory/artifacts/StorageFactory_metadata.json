@@ -30,6 +30,43 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_storageIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "sfGet",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_storageIndex",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_storageFavoriteNumber",
+						"type": "uint256"
+					}
+				],
+				"name": "sfStore",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -68,11 +105,11 @@
 			]
 		},
 		"Documents/Solidity/Learning_Solidity_PatrickCollins/StorageFactory/StorageFactory.sol": {
-			"keccak256": "0x6d64abefdef316229ea69fcf3b45da34b581196203149e0182de80d5312fd7ea",
+			"keccak256": "0xcbcd55e006df5def6c85d2d3f0cbc28ad3a779ca583389592f36e8aaa8167a4b",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://edd47965a6d345a1e6fc33acca347cc537d669928f896a7b32b7f4642acb8fc5",
-				"dweb:/ipfs/QmTJAbURXDd2x6fd51qi612Zbea9jtr13GsVcLyrZi6qSK"
+				"bzz-raw://5046a04824c6bcb40b6a90acc11f2c794da733c26d47c4c0637015e0df0463dc",
+				"dweb:/ipfs/QmQqUBC2Zngj1dUp54tZQ1FUqDSgT8uxSBfaza37gX8TGR"
 			]
 		}
 	},
