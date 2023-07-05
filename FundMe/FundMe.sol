@@ -1,5 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
+// Before solidity version 8, the number operations was unchecked
+// from solidity 8, the number operations are checked and for example
+// if your number exceed the upper limit, you get an error for raising the nubmer.
+// *# We can go to unchecked version using the unchecked keyword. #*
+// e.g. unchecked {number = number + 1;}
+// *## this unckecked keyword will make your contract more gas efficient, if you are certain about your code, use it ##*
 
 /* What is this contract all about:
     in this contract our objective is to make a contrat for people to
@@ -23,7 +29,13 @@ pragma solidity ^0.8.18;
 // in order to use the interface, we have to import that contract that allows us to work with the interface
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
+import {PriceConvertor} from "../PriceConvertor/PriceConvertor.sol";
+
 contract FundMe {
+    // To use PriceConvertor Function in PriceConvertor.sol for uint256 types we can do as follows
+    using PriceConvertor for uint256;
+    // Now we can use the function in the PriceConvertor.sol for all uint256 types,
+    
     uint256 public minimumUSD = 5;// But we cant work with this number directly because blockchain has No idea about real world
     // and because of that, We use ChainLink, a decentralized oracle network.
 
@@ -35,6 +47,10 @@ contract FundMe {
         // require (msg.value > 1e18, "Didn't send enough ETH :(");
         // After we implemented the two following function we can write our required line like this
         require(getConversionRate(msg.value) >= (minimumUSD * 1e18), "didn't send enough ETH");
+        // We can also use the following code
+        // require(msg.value.getConversionRate() >= (minimumUSD * 1e18), "didn't send enough ETH");
+        // the first value is the type that we have defined for the using of the library
+
         // msg.senders refers to who ever that has called this function
         funders.push(msg.sender);
         fundersAmount[msg.sender] += msg.value;
@@ -70,6 +86,45 @@ contract FundMe {
     
 
     // Only the owner of this contract should be able to call this function
-    function withdraw() public {}
+    function withdraw() public {
+        // we could build a require for this function to be called only by the owner of the contract
+        // BUT is not the best way, anyway, the code is as follows
+        // require(msg.sender == owner, "You are not the owner");
+        
+
+        // we want to send all our balance to an account and then reset the fundersAmount
+        // Structure of the foor loop is as follows
+        // for( initialization, condition, update term) {} exactly like c++
+        // while and do_while structure are valid in solidity but we often dont use unbound loops because of the gas usage
+        for (uint256 i=0; i < funders.length; i++){
+            fundersAmount[funders[i]] = 0;
+        }
+        // but we are not done, we still have to withdraw the funds and reset the funders array
+        funders = new address[](0); // this will reset the array
+
+        // there are three different ways you can withdraw
+
+        // 1. transfer
+        //payable(msg.sender).transfer(address(this).balance); // msg.sender is from the type of address,
+                                                             // but we want to change it to payable address type
+        // in solidity in order to send native blockchain tokens, your address needs to be payable
+        // but there is problem with this method such as, it will revert transaction if gets any error like gas limit or ...
+
+
+        // 2. send ( this function will now throw an error but it will give you a boolean
+        // bool sendSuccess = payable(msg.sender).send(address(this).balance);
+        // require(sendSuccess, "send failed");
+
+        // 3. call
+        // call is the more advance way that is used in many other things, we can use it to transfer value using the following procedure
+        (bool paySuccess, ) = payable(msg.sender).call{value: address(this).balance}("");
+        require(paySuccess, "send failed");
+    }
+
+    address public owner;
+    constructor() {// this is the constructor of our contract and it will be called at the first of deploying our contract
+
+        owner = msg.sender;
+    }
 
 }
