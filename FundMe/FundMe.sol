@@ -35,6 +35,7 @@ contract FundMe {
         // require (msg.value > 1e18, "Didn't send enough ETH :(");
         // After we implemented the two following function we can write our required line like this
         require(getConversionRate(msg.value) >= (minimumUSD * 1e18), "didn't send enough ETH");
+        // msg.senders refers to who ever that has called this function
         funders.push(msg.sender);
         fundersAmount[msg.sender] += msg.value;
     }
