@@ -26,10 +26,34 @@ pragma solidity ^0.8.18;
     7. v, r, s: components of tx signature
 */
 
+/* gas efficiency ( constant and/vs immutable )
+   in order to be more efficient with your gas, you can use the two keyword solidity has provided you, constant, immutable
+   constant: In Solidity, constant is a keyword that can be used to define a variable that cannot be modified after it has been initialized.
+   immutable: It is used to declare state variables that can be assigned only once during contract creation and cannot be changed afterwards.
+   their differences:
+    1. constant variables are assigned at compile time, while immutable variables are assigned at runtime during contract creation.
+
+    2. constant variables can only hold simple datatypes and cannot hold complex datatypes like arrays and structs.
+     On the other hand, immutable can hold both simple and complex datatypes.
+
+    3. constant variables can be used in expressions and will be replaced by their value directly where they are used.
+     immutable variables are stored in contract bytecode and are read from there when accessed.
+
+    4. constant variables do not occupy storage slots, while immutable variables do, but only until the contract is constructed.
+
+    5. constant variables can be declared and initialized in any part of the contract, while immutable variables
+     can only be initialized in the constructor.
+
+    6. constant variables can only be initialized with constant expressions, while immutable variables can be initialized
+     with non-constant expressions as long as those expressions are evaluated at construction time.
+*/
+
 // in order to use the interface, we have to import that contract that allows us to work with the interface
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import {PriceConvertor} from "../PriceConvertor/PriceConvertor.sol";
+
+error NotOwner(); // see the use in onlyOwner modifier
 
 contract FundMe {
     // To use PriceConvertor Function in PriceConvertor.sol for uint256 types we can do as follows
@@ -55,6 +79,10 @@ contract FundMe {
         funders.push(msg.sender);
         fundersAmount[msg.sender] += msg.value;
     }
+    /* What happens if someone send this contract ETH without calling fund() function because anybody has the address of the contract
+        we can use two special function in solidity, one is receive() and the other is fallback
+        
+    */
     /* what happens if the requirements of a function do not meet? it will revert
         What is revert:
         undo any actions that have been done, and send the remaining gas back.
@@ -86,7 +114,12 @@ contract FundMe {
     
 
     // Only the owner of this contract should be able to call this function
-    function withdraw() public {
+    function withdraw() public onlyOwner { // This function can only execute if its pass the modifier part onlyOwner
+        // This function should be only callable by the owner of the contract, we can use require or modifiers
+        // We have the owner address from the constructor, so we could do as above for require
+        // require(msg.sender == owner, "You are not the owner");
+        // but we prefer to use modifiers because they can be defined once and used many time
+
         // we could build a require for this function to be called only by the owner of the contract
         // BUT is not the best way, anyway, the code is as follows
         // require(msg.sender == owner, "You are not the owner");
@@ -125,6 +158,16 @@ contract FundMe {
     constructor() {// this is the constructor of our contract and it will be called at the first of deploying our contract
 
         owner = msg.sender;
+    }
+
+    modifier onlyOwner(){ // Now that we have defined this modifier we can use it in any function we want
+        require(msg.sender == owner, "You are Not the owner, Sorry!"); // this line is not that efficient in terms of
+                                                                       // gas because we have to store the error string which is a bytes array
+                                                                       // What we can do is to use our custom errors
+                                                                       // if(msg.sender != owner) { revert NotOwner();}
+        _; // this means continue with the rest of the code
+           // the order of the underscore matters, you could add it at the beginning, which would mean, first execute the function itself
+           // then execute the code for the modifiers  
     }
 
 }
