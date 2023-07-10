@@ -60,7 +60,7 @@ contract FundMe {
     using PriceConvertor for uint256;
     // Now we can use the function in the PriceConvertor.sol for all uint256 types,
     
-    uint256 public minimumUSD = 5;// But we cant work with this number directly because blockchain has No idea about real world
+    uint256 public constant minimumUSD = 5;// But we cant work with this number directly because blockchain has No idea about real world
     // and because of that, We use ChainLink, a decentralized oracle network.
 
     // The following function should be payable because we want to send native token value
@@ -80,9 +80,16 @@ contract FundMe {
         fundersAmount[msg.sender] += msg.value;
     }
     /* What happens if someone send this contract ETH without calling fund() function because anybody has the address of the contract
-        we can use two special function in solidity, one is receive() and the other is fallback
-        
+        we can use two special function in solidity, one is receive() and the other is fallback()
+        These two function is discussed completely in FallbackExample.sol
     */
+    receive() external payable {
+        fund();
+    }
+
+    fallback() external payable {
+        fund();
+    }
     /* what happens if the requirements of a function do not meet? it will revert
         What is revert:
         undo any actions that have been done, and send the remaining gas back.
@@ -154,9 +161,8 @@ contract FundMe {
         require(paySuccess, "send failed");
     }
 
-    address public owner;
+    address public immutable owner; // this can be set once in the constructor
     constructor() {// this is the constructor of our contract and it will be called at the first of deploying our contract
-
         owner = msg.sender;
     }
 
