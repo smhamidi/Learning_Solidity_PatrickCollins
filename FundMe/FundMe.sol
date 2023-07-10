@@ -59,8 +59,9 @@ contract FundMe {
     // To use PriceConvertor Function in PriceConvertor.sol for uint256 types we can do as follows
     using PriceConvertor for uint256;
     // Now we can use the function in the PriceConvertor.sol for all uint256 types,
-    
-    uint256 public constant minimumUSD = 5;// But we cant work with this number directly because blockchain has No idea about real world
+
+    uint256 public constant minimumUSD = 5; // But we cant work with this number directly because blockchain has No idea about real world
+
     // and because of that, We use ChainLink, a decentralized oracle network.
 
     // The following function should be payable because we want to send native token value
@@ -70,7 +71,10 @@ contract FundMe {
         // If we want at least 1 Eth to get sent we can use the following command
         // require (msg.value > 1e18, "Didn't send enough ETH :(");
         // After we implemented the two following function we can write our required line like this
-        require(getConversionRate(msg.value) >= (minimumUSD * 1e18), "didn't send enough ETH");
+        require(
+            getConversionRate(msg.value) >= (minimumUSD * 1e18),
+            "didn't send enough ETH"
+        );
         // We can also use the following code
         // require(msg.value.getConversionRate() >= (minimumUSD * 1e18), "didn't send enough ETH");
         // the first value is the type that we have defined for the using of the library
@@ -79,6 +83,7 @@ contract FundMe {
         funders.push(msg.sender);
         fundersAmount[msg.sender] += msg.value;
     }
+
     /* What happens if someone send this contract ETH without calling fund() function because anybody has the address of the contract
         we can use two special function in solidity, one is receive() and the other is fallback()
         These two function is discussed completely in FallbackExample.sol
@@ -90,23 +95,28 @@ contract FundMe {
     fallback() external payable {
         fund();
     }
+
     /* what happens if the requirements of a function do not meet? it will revert
         What is revert:
         undo any actions that have been done, and send the remaining gas back.
     */
 
-    function getPrice() public view returns(uint256) {
+    function getPrice() public view returns (uint256) {
         // In order to get the price we need
         // First the address of the contract that store the value of ETH/USD in the chainlink oracle
         // Second we need the ABI ( application binary interface )
         address ETH_USD_SepoliaAddress = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(ETH_USD_SepoliaAddress);
-        (,int256 price,,,) = priceFeed.latestRoundData();
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(
+            ETH_USD_SepoliaAddress
+        );
+        (, int256 price, , , ) = priceFeed.latestRoundData();
 
         return uint256(price * 1e10);
     }
 
-    function getConversionRate(uint256 ETH_amount) public view returns(uint256) {
+    function getConversionRate(
+        uint256 ETH_amount
+    ) public view returns (uint256) {
         uint256 ETH_price = getPrice();
         uint256 ETH_AmountInUSD = (ETH_amount * ETH_price) / 1e18;
         return ETH_AmountInUSD;
@@ -118,10 +128,10 @@ contract FundMe {
     // we could also make a mapping from the senders to they money they have funded
     // there is a new feature in solidity that you can put name in the mapping: funder and amoundFunded
     mapping(address funder => uint256 amountFunded) public fundersAmount;
-    
 
     // Only the owner of this contract should be able to call this function
-    function withdraw() public onlyOwner { // This function can only execute if its pass the modifier part onlyOwner
+    function withdraw() public onlyOwner {
+        // This function can only execute if its pass the modifier part onlyOwner
         // This function should be only callable by the owner of the contract, we can use require or modifiers
         // We have the owner address from the constructor, so we could do as above for require
         // require(msg.sender == owner, "You are not the owner");
@@ -130,13 +140,12 @@ contract FundMe {
         // we could build a require for this function to be called only by the owner of the contract
         // BUT is not the best way, anyway, the code is as follows
         // require(msg.sender == owner, "You are not the owner");
-        
 
         // we want to send all our balance to an account and then reset the fundersAmount
         // Structure of the foor loop is as follows
         // for( initialization, condition, update term) {} exactly like c++
         // while and do_while structure are valid in solidity but we often dont use unbound loops because of the gas usage
-        for (uint256 i=0; i < funders.length; i++){
+        for (uint256 i = 0; i < funders.length; i++) {
             fundersAmount[funders[i]] = 0;
         }
         // but we are not done, we still have to withdraw the funds and reset the funders array
@@ -146,10 +155,9 @@ contract FundMe {
 
         // 1. transfer
         //payable(msg.sender).transfer(address(this).balance); // msg.sender is from the type of address,
-                                                             // but we want to change it to payable address type
+        // but we want to change it to payable address type
         // in solidity in order to send native blockchain tokens, your address needs to be payable
         // but there is problem with this method such as, it will revert transaction if gets any error like gas limit or ...
-
 
         // 2. send ( this function will now throw an error but it will give you a boolean
         // bool sendSuccess = payable(msg.sender).send(address(this).balance);
@@ -157,23 +165,27 @@ contract FundMe {
 
         // 3. call
         // call is the more advance way that is used in many other things, we can use it to transfer value using the following procedure
-        (bool paySuccess, ) = payable(msg.sender).call{value: address(this).balance}("");
+        (bool paySuccess, ) = payable(msg.sender).call{
+            value: address(this).balance
+        }("");
         require(paySuccess, "send failed");
     }
 
     address public immutable owner; // this can be set once in the constructor
-    constructor() {// this is the constructor of our contract and it will be called at the first of deploying our contract
+
+    constructor() {
+        // this is the constructor of our contract and it will be called at the first of deploying our contract
         owner = msg.sender;
     }
 
-    modifier onlyOwner(){ // Now that we have defined this modifier we can use it in any function we want
+    modifier onlyOwner() {
+        // Now that we have defined this modifier we can use it in any function we want
         require(msg.sender == owner, "You are Not the owner, Sorry!"); // this line is not that efficient in terms of
-                                                                       // gas because we have to store the error string which is a bytes array
-                                                                       // What we can do is to use our custom errors
-                                                                       // if(msg.sender != owner) { revert NotOwner();}
+        // gas because we have to store the error string which is a bytes array
+        // What we can do is to use our custom errors
+        // if(msg.sender != owner) { revert NotOwner();}
         _; // this means continue with the rest of the code
-           // the order of the underscore matters, you could add it at the beginning, which would mean, first execute the function itself
-           // then execute the code for the modifiers  
+        // the order of the underscore matters, you could add it at the beginning, which would mean, first execute the function itself
+        // then execute the code for the modifiers
     }
-
 }
