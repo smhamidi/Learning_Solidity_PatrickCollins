@@ -6,9 +6,9 @@ import {Test} from "forge-std/Test.sol";
 
 import {console} from "forge-std/Test.sol";
 
-import {FundMe} from "../src/FundMe.sol";
+import {FundMe} from "../../src/FundMe.sol";
 
-import {DeployFundMe} from "../script/DeployFundMe.s.sol";
+import {DeployFundMe} from "../../script/DeployFundMe.s.sol";
 import {StdCheats} from "forge-std/StdCheats.sol";
 
 contract FundMeTest is StdCheats, Test {
