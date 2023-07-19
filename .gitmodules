@@ -10,3 +10,6 @@
 [submodule "FoundrySolidity/FundMe/lib/foundry-devops"]
 	path = FoundrySolidity/FundMe/lib/foundry-devops
 	url = https://github.com/cyfrin/foundry-devops
+[submodule "FoundrySolidity/Lottery/lib/forge-std"]
+	path = FoundrySolidity/Lottery/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
