@@ -22,7 +22,7 @@ contract FundMe {
     address[] public s_funders;
 
     // Could we make this constant?  /* hint: no! We should make it immutable! */
-    address public /* immutable */ i_owner;
+    address public /* immutable */ i_owner; // these are in storage, reading and writing from storage is incredably expensive
     uint256 public constant MINIMUM_USD = 5 * 10 ** 18;
 
     AggregatorV3Interface private s_priceFeed;
@@ -60,7 +60,17 @@ contract FundMe {
         require(callSuccess, "Call failed");
     }
 
+    // But there is better way for us to write the withdraw function to be more gas efficient
+    function CheaperWithdraw() public onlyOwner {
+        uint256 fundersLength = s_funders.length;
 
+        for (uint256 funderIndex = 0; funderIndex < fundersLength; funderIndex++) {
+            address funder = s_funders[funderIndex];
+            s_addressToAmountFunded[funder] = 0;
+        }
+
+        s_funders = new address[](0);
+    }
     fallback() external payable {
         fund();
     }

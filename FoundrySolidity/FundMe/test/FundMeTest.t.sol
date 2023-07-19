@@ -116,4 +116,31 @@ contract FundMeTest is StdCheats, Test {
                 fundMe.getOwnerAddress().balance
         );
     }
+
+    function testWithdrawFromMultipleFundersCheaper() public sendFund {
+        // vm.txGasPrice(GAS_PRICE); by doing this you can set a gas price to the rest of the transactions
+
+        uint160 NumberOfFunders = 10; // if you want to make an address with a number, that number must be uint160
+        uint160 startingFunderIndex = 1;
+
+        for (uint160 i = startingFunderIndex; i < NumberOfFunders; i++) {
+            address funderAddress = address(i);
+            hoax(funderAddress, SendValue); // this will create that address and give it a balance
+            // do the work for both prank and deal function, *#*# so the next line will be called using funderAddress *#*#
+            fundMe.fund{value: SendValue}();
+        }
+
+        uint256 startingOwnerBalance = fundMe.getOwnerAddress().balance;
+        uint256 startingContractBalance = address(fundMe).balance;
+
+        vm.startPrank(fundMe.getOwnerAddress());
+        fundMe.CheaperWithdraw(); // anything between of startPrank and stopPrank will be done using the given address
+        vm.stopPrank();
+
+        assert(address(fundMe).balance == 0);
+        assert(
+            startingContractBalance + startingOwnerBalance ==
+                fundMe.getOwnerAddress().balance
+        );
+    }
 }
