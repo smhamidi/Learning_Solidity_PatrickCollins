@@ -8,6 +8,7 @@ import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2
 /// @author Seyyed Mohammad Hamidi
 /// @notice this is a sample Raffle contract
 /// @dev implementing chainlik VRFv2
+
 contract Raffle is VRFConsumerBaseV2 {
     error Raffle__NotEnoughETHSent();
     error Raffle__TransferFailedForWinner();
@@ -153,5 +154,13 @@ contract Raffle is VRFConsumerBaseV2 {
     /** Getter function to get our private variables starts here */
     function getEntranceFee() external view returns (uint256) {
         return i_entranceFee;
+    }
+
+    function getRaffleState() external view returns (RaffleState) {
+        return s_raffleState;
+    }
+
+    function getPlayer(uint256 indexOfPlayer) external view returns (address) {
+        return s_players[indexOfPlayer];
     }
 }
