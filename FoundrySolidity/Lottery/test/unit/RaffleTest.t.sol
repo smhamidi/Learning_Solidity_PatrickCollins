@@ -8,6 +8,9 @@ import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 
 contract RaffleTest is Test {
+    /** Event (for testing emit in our raffle) */
+    event EnteredRaffle(address indexed enteredPlayer);
+
     address public PLAYER = makeAddr("Player");
     uint256 public constant STARTING_USER_BALANCE = 1 ether;
 
@@ -59,5 +62,25 @@ contract RaffleTest is Test {
         raffle.enterRaffle{value: entranceFee}();
         address playerRecorded = raffle.getPlayer(0);
         assert(playerRecorded == PLAYER);
+    }
+
+    function testEmitsEventOnEntrance() public {
+        vm.prank(PLAYER);
+        vm.expectEmit(true, false, false, false, address(raffle)); // we are expecting an emit
+        emit EnteredRaffle(PLAYER); // we manually emit the event that we want to check and we tell foundry
+        // that we are expecting this event to be emitted in the next line
+        raffle.enterRaffle{value: entranceFee}();
+    }
+
+    function testCantEnterWhenRaffleIsCalculating() public {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1); // using this vm.warp() function we can set block time or timeStamp of our block
+        vm.roll(block.number + 1);
+        raffle.performUpkeep("");
+
+        vm.expectRevert(Raffle.Raffle__CalculationTime.selector);
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
     }
 }
