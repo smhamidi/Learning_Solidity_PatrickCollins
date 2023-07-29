@@ -13,6 +13,9 @@ contract TestBasicNFT is Test {
     address public USER1 = makeAddr("USER1");
     address public USER2 = makeAddr("USER2");
 
+    string public TOKEN_URI =
+        "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json";
+
     function setUp() external {
         deployer = new DeployBasicNFT();
         ourNFT = deployer.run();
@@ -46,10 +49,12 @@ contract TestBasicNFT is Test {
 
     function testCanMingAndHasBalance() public {
         vm.prank(USER1);
-        ourNFT.mintNft(
-            "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json"
-        );
+        ourNFT.mintNft(TOKEN_URI);
 
         assert(ourNFT.balanceOf(USER1) == 1);
+        assert(
+            keccak256(abi.encodePacked(TOKEN_URI)) ==
+                keccak256(abi.encodePacked(ourNFT.tokenURI(0)))
+        );
     }
 }
