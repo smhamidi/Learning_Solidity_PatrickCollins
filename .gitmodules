@@ -28,3 +28,6 @@
 [submodule "FoundrySolidity/ERC721/lib/foundry-devops"]
 	path = FoundrySolidity/ERC721/lib/foundry-devops
 	url = https://github.com/cyfrin/foundry-devops
+[submodule "FoundrySolidity/Defi-Stablecoin/lib/forge-std"]
+	path = FoundrySolidity/Defi-Stablecoin/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
