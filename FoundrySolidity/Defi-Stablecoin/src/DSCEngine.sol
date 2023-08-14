@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 
 /**
  * @title DSCengine
@@ -18,17 +19,31 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
  * it is similar to dai if dai has no governenced
  */
 contract DSCEngine is ReentrancyGuard {
-    /** Errors **/
+    /**
+     * Errors *
+     */
     error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
     error DSCEngine__TokenIsNotAllowed();
+    error DSCEngine__TransferFailed();
 
-    /** StateVariables **/
+    /**
+     * StateVariables *
+     */
     mapping(address token => address pricefeed) private s_priceFeeds;
+    mapping(address user => mapping(address token => uint256 collateralAmount)) private s_userToCollateralDeposited;
 
     DecentralizedStableCoin public immutable i_DSC;
 
-    /** Modifiers **/
+    /**
+     * Events *
+     */
+    event collateralDeposited(address indexed sender, address indexed token, uint256 indexed amount);
+
+    /**
+     * Modifiers *
+     */
+
     modifier moreThanZero(uint256 amount) {
         if (amount <= 0) {
             revert DSCEngine__NeedsMoreThanZero();
@@ -43,12 +58,10 @@ contract DSCEngine is ReentrancyGuard {
         _;
     }
 
-    /** Functions **/
-    constructor(
-        address[] memory tokenAddresses,
-        address[] memory priceFeedAddresses,
-        address dscAddress
-    ) {
+    /**
+     * Functions *
+     */
+    constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address dscAddress) {
         if (tokenAddresses.length != priceFeedAddresses.length) {
             revert DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
         }
@@ -60,19 +73,26 @@ contract DSCEngine is ReentrancyGuard {
         i_DSC = DecentralizedStableCoin(dscAddress);
     }
 
-    /** External Functions **/
+    /**
+     * External Functions *
+     */
 
     function depositCollateralAndMintDSC() external {}
 
-    function depositCollateral(
-        address tokenCollateralAddress,
-        uint256 collateralAmount
-    )
+    function depositCollateral(address tokenCollateralAddress, uint256 collateralAmount)
         external
         moreThanZero(collateralAmount)
         isAllowedToken(tokenCollateralAddress)
         nonReentrant
-    {}
+    {
+        s_userToCollateralDeposited[msg.sender][tokenCollateralAddress] += collateralAmount;
+        emit collateralDeposited(msg.sender, tokenCollateralAddress, collateralAmount);
+
+        bool success = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), collateralAmount);
+        if (!success) {
+            revert DSCEngine__TransferFailed();
+        }
+    }
 
     function redeemCollateralForDSC() external {}
 
